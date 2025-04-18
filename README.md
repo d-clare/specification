@@ -84,7 +84,7 @@ DClare is an open community-driven project. We welcome contributions, ideas, fee
 
 The DClare project follows an open governance model and operates under the principles of transparency, openness, and meritocracy.
 
-For more details, see [GOVERNANCE.md](GOVERNANCE.md)
+For more details, see [governance](GOVERNANCE.md).
 
 ### Code of Conduct
 
@@ -97,4 +97,4 @@ Please review our [Code of Conduct](CODE_OF_CONDUCT.md).
 
 DClare is open source and community-driven. If you're interested in supporting its development or using it in production, please reach out via [contact@d-clare.ai](mailto:contact@d-clare.ai) or open a GitHub issue to connect.
 
-Want to contribute? See our [CONTRIBUTING.md](CONTRIBUTING.md) guide.
+Want to contribute? See our [contributing](CONTRIBUTING.md) guide.
