@@ -77,8 +77,8 @@ DClare is an open community-driven project. We welcome contributions, ideas, fee
 ### Communication
 
 - Email: [contact@d-clare.ai](mailto:contact@d-clare.ai)
-- GitHub Discussions (coming soon)
-- Community meetings and roadmap discussions (to be announced)
+- [GitHub Discussions](https://github.com/orgs/d-clare/discussions)
+- Community meetings and roadmap discussions
 
 ### Governance
 
