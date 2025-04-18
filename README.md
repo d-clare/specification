@@ -62,7 +62,7 @@ SDKs can be used to parse, validate, author, and execute specifications programm
 The DClare Specification documentation includes:
 
 - [DSL Overview](docs/dsl.md): Core concepts, syntax, and usage
-- [DSL Schema](schemas/dsl.schema): JSON Schema used to validate and author declarative manifests, supporting both YAML and JSON formats
+- [DSL Schema](schemas/dsl.yaml): JSON Schema used to validate and author declarative manifests, supporting both YAML and JSON formats
 - [DSL Component Reference](docs/dsl-reference.md): Formal definition of each component
 - [Protocol Support](docs/protocols.md): Communication mechanisms like A2A
 - [Examples](examples/README.md): Real-world usage examples
