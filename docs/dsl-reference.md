@@ -14,6 +14,77 @@ Each component is presented with a summary of its purpose, a table of available 
 
 Unless otherwise noted, all definitions are designed to be serialized in YAML or JSON and follow consistent naming and structural conventions throughout the DClare ecosystem.
 
+### Manifest
+
+#### Properties
+
+| Name | Type | Required | Description |
+|:-----|:----:|:--------:|:------------|
+| metadata | [`manifestMetadata`](#manifest-metadata) | `no` | Provides descriptive information about a manifest. |
+| components | [`componentCollection`](#component-collection) | `no` | Provides a collection of reusable components, if any, that can be referenced throughout the manifest. |
+| interfaces | [`interfaceCollection`](#interface-collection) | `yes` | Provides a collection of interfaces through which the application's components are made accessible. |
+
+#### Examples
+
+```yaml
+metadata:
+  name: book-critic-app
+  description: An AI-powered application that exposes a book review agent capable of analyzing literary works across genres and eras.
+  version: '1.0.0'
+  tags: [ book, critic, agent, openai, gpt4o ]
+components:
+  secrets:
+    - openai-apikey
+  kernels:
+    openai-gpt4o:
+      reasoning:
+        provider: openai
+        model: gpt-4o
+        api:
+          endpoint:
+            authentication:
+              apiKey:
+                use: openai-apikey
+          properties:
+            organization: d-clare
+  agents:
+    book-critic:
+      hosted:
+        description: Offers insightful, articulate reviews and analyses of books across genres and literary traditions.
+        instructions: >
+          You are a literary critic specializing in narrative structure, thematic depth, character development, and writing style.
+          Provide detailed yet accessible reviews that balance critical analysis with reader experience. Always justify your
+          assessments with textual evidence or references, and avoid spoilers unless explicitly requested.
+        skills:
+          - name: Literary Analysis
+            description: Analyzes narrative techniques, symbolism, tone, and stylistic elements within a text.
+          - name: Thematic Evaluation
+            description: Evaluates the depth and clarity of central themes, motifs, and philosophical undertones in a book.
+        kernel:
+          use: openai-gpt4o
+interfaces:
+  agents:
+    book-critic:
+      use: book-critic
+      endpoints:
+        a2a: true
+        http:
+          path: /api/agents/book-critic
+```
+
+### Manifest Metadata
+
+Defines descriptive information about a manifest.
+
+#### Properties
+
+| Name | Type | Required | Description |
+|:-----|:----:|:--------:|:------------|
+| name | `string` | `yes` | A unique, human-readable name used to identify the manifest in logs, dashboards, or registries. |
+| description | `string` | `no` | A brief summary explaining the purpose or scope of the manifest. Useful for documentation or discovery. |
+| version | `string` | `yes` |  The version of the manifest, following [semantic versioning 2.0.0](https://semver.org/#semantic-versioning-200https://semver.org/#semantic-versioning-200). Helps manage updates and compatibility. |
+| tags | `string[]` | `no` | An optional list of keywords or labels used to categorize or filter manifests by theme, domain, or capability. |
+
 ### Component Collection
 
 Defines a collection of reusable components.
@@ -22,6 +93,7 @@ Defines a collection of reusable components.
 
 | Name | Type | Required | Description |
 |:-----|:----:|:--------:|:------------|
+| secrets | `string[]` | `no` | Defines the list of secrets, if any, used to securely configure components. |
 | authentications | [`map{authenticationPolicy}`](#authentication-policy) | `no` | A map of identifiers to authentication policy definitions. Each key represents a unique authentication policy name, and each value specifies the configuration of that authentication policy. |
 | memories | [`map{memory}`](#memory) | `no` | A map of identifiers to memory definitions. Each key represents a unique memory name, and each value specifies the configuration of that memory. |
 | toolsets | [`map{toolset}`](#toolset) | `no` | A map of identifiers to toolset definitions. Each key represents a unique toolset name, and each value specifies the configuration of that toolset. |
@@ -29,6 +101,17 @@ Defines a collection of reusable components.
 | kernels | [`map{kernel}`](#kernel) | `no` | A map of identifiers to kernel definitions. Each key represents a unique kernel name, and each value specifies the configuration of that kernel. |
 | agents | [`map{agent}`](#agent) | `no` | A map of identifiers to agent definitions. Each key represents a unique agent name, and each value specifies the configuration of that agent. |
 | processes | [`map{agenticProcess}`](#agentic-process) | `no` | A map of identifiers to agentic process definitions. Each key represents a unique agentic process name, and each value specifies the configuration of that agentic process. |
+
+### Interface Collection
+
+Defines the set of named interfaces that define how agents, processes, and other components are exposed by the application.
+
+#### Properties
+
+| Name | Type | Required | Description |
+|:-----|:----:|:--------:|:------------|
+| agents | [map{agentInterface}](#agent-interface) | `no` | A map of identifiers to agent interfaces that are exposed by the application. Each key represents a unique agent interface name, and each value specifies the configuration of that agent interface. |
+| processes | [map{agenticProcessInterface}](#agentic-process-interface) | `no` | A map of identifiers to agentic process interfaces that are exposed by the application. Each key represents a unique agentic process interface name, and each value specifies the configuration of that agentic process interface. |
 
 ### Kernel
 
@@ -666,6 +749,316 @@ Defines the kernel function strategy used to synthesize multiple inputs into a s
 
 > [!NOTE]  
 > This definition **extends** the [`Kernel Function Strategy`](#kernel-function-strategy), and inherits all its properties.
+
+### Agent Interface
+
+Defines an interface to an agent exposed by the application.
+
+#### Properties
+
+| Name | Type | Required | Description |
+|:-----|:----:|:--------:|:------------|
+| endpoints | [`interfaceEndpointCollection`](#interface-endpoint-collection) | `yes` | Defines the access points through which the agent interface is made available. |
+
+> [!NOTE]  
+> This definition **extends** [`agent`](#agent), and inherits all its properties.
+
+### Process Interface
+
+Defines an interface to an agentic process exposed by the application.
+
+#### Properties
+
+| Name | Type | Required | Description |
+|:-----|:----:|:--------:|:------------|
+| endpoints | [`interfaceEndpointCollection`](#interface-endpoint-collection) | `yes` | Defines the access points through which the agentic process interface is made available. |
+
+> [!NOTE]  
+> This definition **extends** [`agenticProcess`](#agentic-process), and inherits all its properties.
+
+### Interface Endpoint Collection
+
+Defines the access points through which an application interface is made available.
+
+#### Properties
+
+| Name | Type | Required | Description |
+|:-----|:----:|:--------:|:------------|
+| a2a | `boolean` | `no` | Indicates whether the interface is publicly documented and accessible via the [Agent2Agent protocol](https://github.com/google/A2A). |
+| http | [`httpInterface`](#http-interface) | `no` | Defines the HTTP-specific configuration used to expose the interface over standard web protocols. |
+
+### Http Interface
+
+Defines the HTTP interface through which an application component (e.g., an agent) is exposed.
+
+#### Properties
+
+| Name | Type | Required | Description |
+|:-----|:----:|:--------:|:------------|
+| path | `string` | `yes` | Specifies the relative URL path at which the component is exposed. |
+| authentication | [`securityScheme`](#security-scheme) | `no` | Specifies the authentication scheme, if any, used to protect access to the HTTP endpoint.<br>Follows [OpenAPI v3.0.3 `Security Scheme Object` structure](https://swagger.io/specification/v3/#security-scheme-object). |
+
+### Security Scheme
+
+Defines the authentication method used to secure access to an exposed interface.
+
+> [!NOTE]  
+> Follows [OpenAPI v3.0.3 `Security Scheme Object` structure](https://swagger.io/specification/v3/#security-scheme-object).
+
+#### Properties
+
+| Name | Type | Required | Description |
+|:-----|:----:|:--------:|:------------|
+| type | `string` | `yes` | The type of the security scheme.<br>*Supported values are `apiKey`, `http`, `mutualTLS`, `oauth2`, `openIdConnect`.* |
+| description | `string` | `no` | A short description for security scheme. CommonMark syntax MAY be used for rich text representation. |
+| name | `string` | `no` | The name of the header, query or cookie parameter to be used.<br>*Required if `type` is set to `apiKey`.* |
+| in | `string` | `no` | The location of the API key.<br>*Supported values are `query`, `header` or `cookie`.<br>*Required if `type` is set to `apiKey`.* |
+| scheme | `string` | `no` | The name of the HTTP Authorization scheme to be used in the [Authorization header as defined in RFC7235](https://datatracker.ietf.org/doc/html/rfc7235#section-5.1). The values used SHOULD be registered in the [IANA Authentication Scheme registry](https://www.iana.org/assignments/http-authschemes/http-authschemes.xhtml).<br>*Required if `type` is set to `http`.* |
+| bearerFormat | `string` | `no` | A hint to the client to identify how the bearer token is formatted. Bearer tokens are usually generated by an authorization server, so this information is primarily for documentation purposes.<br>*Applies if `type` is set to `http`, otherwise ignored.* |
+| flows | [`oauthFlowCollection`](#oauth-flow-collection) | `no` | An object containing configuration information for the flow types supported.<br>*Required if `type` is set to `oauth2`.* |
+| openIdConnectUrl | `string` | `no` | OpenId Connect URL to discover OAuth2 configuration values. This MUST be in the form of a URL.<br>*Required if `type` is set to `openIdConnect`.* |
+
+### OAuth Flow Collection
+
+Defines the configuration of the supported OAuth Flows.
+
+> [!NOTE]  
+> Follows [OpenAPI v3.0.3 `OAuth Flows Object` structure](https://swagger.io/specification/v3/#oauth-flows-object).
+
+#### Properties
+
+| Name | Type | Required | Description |
+|:-----|:----:|:--------:|:------------|
+| implicit | [`oauthFlow`](#oauth-flow) | `no` | Configuration for the OAuth Implicit flow. |
+| password | [`oauthFlow`](#oauth-flow) | `no` | Configuration for the OAuth Resource Owner Password flow. |
+| clientCredentials | [`oauthFlow`](#oauth-flow) | `no` | Configuration for the OAuth Client Credentials flow. Previously called application in OpenAPI 2.0. |
+| authorizationCode | [`oauthFlow`](#oauth-flow) | `no` | Configuration for the OAuth Authorization Code flow. Previously called accessCode in OpenAPI 2.0. |
+
+### OAuth Flow
+
+Defines the configuration of an OAuth Flow.
+
+> [!NOTE]  
+> Follows [OpenAPI v3.0.3 `OAuth Flow Object` structure](https://swagger.io/specification/v3/#oauth-flow-object).
+
+#### Properties
+
+| Name | Type | Required | Description |
+|:-----|:----:|:--------:|:------------|
+| authorizationUrl | `string` | `no` | The authorization URL to be used for this flow. This MUST be in the form of a URL.<br>*Required if applies to a `implicit` or `authorizationCode` flow, otherwise ignored.* |
+| tokenUrl | `string` | `yes` | The token URL to be used for this flow. This MUST be in the form of a URL.<br>*Required if applies to a `password`, `clientCredentials` or `authorizationCode` flow, otherwise ignored.* |
+| refreshUrl | `string` | `no` | The URL to be used for obtaining refresh tokens. This MUST be in the form of a URL.<br>*Applies if to `oauth2` authentication, otherwise ignored.* |
+| scopes | `map{string}` | `no` | The available scopes for the OAuth2 security scheme. A map between the scope name and a short description for it. The map MAY be empty.<br>*Required if applies to an `oauth2` authentication.* |
+
+### Toolset
+
+Defines a toolset that exposes one or more callable tools or functions which kernels can invoke at runtime. Toolsets enable structured interactions with external APIs, internal functions, or logic providers.
+
+#### Properties
+
+| Name | Type | Required | Description |
+|:-----|:----:|:--------:|:------------|
+| mcp | [`mcpToolset`](#mcp-toolset) | `no` | Configures a Model Context Protocol (MCP) based toolset, where tools are declared as modules accessible via standard capability interfaces.<br>*Required if not other property has been set, otherwise ignored.*  |
+| openapi | [`openapiToolset`](#openapi-toolset) | `no` | Configures an OpenAPI based toolset, enabling kernels to invoke HTTP-based tools using structured OpenAPI operation definitions.<br>*Required if not other property has been set, otherwise ignored.* |
+
+### MCP Toolset
+
+Defines a toolset based on the Model Context Protocol (MCP), where tools are declared as modules accessible via standard capability interfaces.
+
+#### Properties
+
+| Name | Type | Required | Description |
+|:-----|:----:|:--------:|:------------|
+| transport | [`mcpTransport`](#mcp-transport) | `yes` | Defines the transport mechanism used by the MCP toolset to communicate with its capabilities. |
+| client | [`mcpClient`](#mcp-client) | `yes` | Defines the MCP client settings used to interface with the toolset. |
+
+### MCP Transport
+
+Defines the transport mechanism used by the MCP toolset to communicate with its capabilities.
+
+#### Properties
+
+| Name | Type | Required | Description |
+|:-----|:----:|:--------:|:------------|
+| http | [`mcpHttpTransport`](#mcp-http-transport) | `no` | Defines an HTTP-based transport for communicating with MCP capabilities.<br>*Required if not other property has been set, otherwise ignored.* |
+| stdio | [`mcpStdioTransport`](#mcp-stdio-transport) | `no` | <br>*Required if not other property has been set, otherwise ignored.* |
+
+### MCP HTTP Transport
+
+Defines an HTTP-based transport for communicating with MCP capabilities.
+
+#### Properties
+
+| Name | Type | Required | Description |
+|:-----|:----:|:--------:|:------------|
+| endpoint | [`endpoint`](#endpoint) | `yes` | The remote HTTP endpoint exposing MCP-compatible modules. |
+| headers | `map{string}` | `no` | A mapping of HTTP headers, if any, to include in transport requests. |
+
+### MCP STDIO Transport
+
+Defines a transport that uses standard input/output (stdio) to communicate with a local process implementing MCP capabilities.
+
+#### Properties
+
+| Name | Type | Required | Description |
+|:-----|:----:|:--------:|:------------|
+| command | `string` | `yes` | Specifies the command and arguments used to launch the stdio-based MCP process. |
+| arguments | `string[]` | `no` | An optional list of command-line arguments passed to the command. |
+
+### MCP Client
+
+Defines the MCP client settings used to interface with the toolset.
+
+#### Properties
+
+| Name | Type | Required | Description |
+|:-----|:----:|:--------:|:------------|
+| implementation | [`mcpClientImplementation`](#mcp-client-implementation) | `yes` | Specifies the client implementation used to interact with the MCP toolset. |
+| protocolVersion | `string` | `yes` | The version of the MCP protocol supported by the client when interacting with the toolset.<br>*Defaults to `2024-11-05`.* |
+| timeout | [`duration`](#duration) | `no` | Optional timeout applied to toolset requests issued by the client. |
+
+### MCP Client Implementation
+
+Specifies the client implementation used to interact with the MCP toolset
+
+#### Properties
+
+| Name | Type | Required | Description |
+|:-----|:----:|:--------:|:------------|
+| name | `string` | `yes` | The name of the MCP client implementation. |
+| version | `string` | `yes` | The version of the MCP client implementation. |
+
+### OpenAPI Toolset
+
+Defines a toolset based on an OpenAPI specification, enabling kernels to invoke HTTP-based tools using structured OpenAPI operation definitions.
+
+#### Properties
+
+| Name | Type | Required | Description |
+|:-----|:----:|:--------:|:------------|
+| document | [`externalResource`](#external-resource) | `yes` | The OpenAPI document to use. |
+
+### Authentication Policy
+
+Defines the mechanism used to authenticate users and workflows attempting to access a service or a resource.
+
+#### Properties
+
+| Property | Type | Required | Description |
+|----------|:----:|:--------:|-------------|
+| use | `string` | `no` | The name of the top-level authentication definition to use. Cannot be used by authentication definitions defined at top level. |
+| basic | [`basicAuthentication`](#basic-authentication) | `no` | The `basic` authentication scheme to use, if any.<br>Required if no other property has been set, otherwise ignored. |
+| bearer | [`bearerAuthentication`](#bearer-authentication) | `no` | The `bearer` authentication scheme to use, if any.<br>Required if no other property has been set, otherwise ignored. |
+| certificate | [`certificateAuthentication`](#certificate-authentication) | `no` | The `certificate` authentication scheme to use, if any.<br>Required if no other property has been set, otherwise ignored. |
+| digest | [`digestAuthentication`](#digest-authentication) | `no` | The `digest` authentication scheme to use, if any.<br>Required if no other property has been set, otherwise ignored. |
+| oauth2 | [`oauth2`](#oauth2-authentication) | `no` | The `oauth2` authentication scheme to use, if any.<br>Required if no other property has been set, otherwise ignored. |
+| oidc | [`oidc`](#openidconnect-authentication) | `no` | The `oidc` authentication scheme to use, if any.<br>Required if no other property has been set, otherwise ignored. |
+
+### Basic Authentication
+
+Defines the fundamentals of a 'basic' authentication.
+
+#### Properties
+
+| Property | Type | Required | Description |
+|----------|:----:|:--------:|-------------|
+| username | `string` | `yes` | The username to use. |
+| password | `string` | `yes` | The password to use. |
+
+### Bearer Authentication
+
+Defines the fundamentals of a 'bearer' authentication
+
+#### Properties
+
+| Property | Type | Required | Description |
+|----------|:----:|:--------:|-------------|
+| token | `string` | `yes` | The bearer token to use. |
+
+### OAUTH2 Authentication
+
+Defines the fundamentals of an 'oauth2' authentication.
+
+#### Properties
+
+| Name | Type | Required | Description |
+|:-----|:----:|:--------:|:------------|
+| authority | `uri-template` | `yes` | The URI that references the authority to use when making OAuth2 calls. |
+| endpoints.token | `uri-template` | `no` | The relative path to the endpoint for OAuth2 token requests.<br>Defaults to `/oauth2/token`. |
+| endpoints.revocation | `uri-template` | `no` | The relative path to the endpoint used to invalidate tokens.<br>Defaults to `/oauth2/revoke`. |
+| endpoints.introspection | `uri-template` | `no` | The relative path to the endpoint used to validate and obtain information about a token, typically to check its validity and associated metadata.<br>Defaults to `/oauth2/introspect`. | 
+| grant | `string` | `yes` | The grant type to use.<br>Supported values are `authorization_code`, `client_credentials`, `password`, `refresh_token` and `urn:ietf:params:oauth:grant-type:token-exchange`. |
+| client.id | `string` | `no` | The client id to use.<br>Required if the `client.authentication` method has **not** been set to `none`. |
+| client.secret | `string` | `no` | The client secret to use, if any. |
+| client.assertion | `string` | `no` | A JWT containing a signed assertion with your application credentials.<br>Required when `client.authentication` has been set to `private_key_jwt`. |
+| client.authentication | `string` | `no` | The client authentication method to use.<br>Supported values are `client_secret_basic`, `client_secret_post`, `client_secret_jwt`, `private_key_jwt` or `none`.<br>Defaults to `client_secret_post`. |
+| request.encoding | `string` | `no` | The encoding of the token request.<br>Supported values are `application/x-www-form-urlencoded` and `application/json`.<br>Defaults to application/x-www-form-urlencoded. |
+| issuers | `uri-template[]` | `no` | A list that contains that contains valid issuers that will be used to check against the issuer of generated tokens. |
+| scopes | `string[]` | `no` | The scopes, if any, to request the token for. |
+| audiences | `string[]` | `no` | The audiences, if any, to request the token for. |
+| username | `string` | `no` | The username to use. Used only if the grant type is `Password`. |
+| password | `string` | `no` | The password to use. Used only if the grant type is `Password`. |
+| subject | [`oauth2Token`](#oauth2-token) | `no` | The security token that represents the identity of the party on behalf of whom the request is being made. |
+| actor | [`oauth2Token`](#oauth2-token) | `no` | The security token that represents the identity of the acting party. |
+
+#### OAUTH2 Token
+
+Represents the definition of an OAUTH2 token
+
+##### Properties
+
+| Property | Type | Required | Description |
+|----------|:----:|:--------:|-------------|
+| token | `string` | `yes` | The security token to use to use. |
+| type | `string` | `yes` | The type of security token to use. |
+
+### OpenIdConnect Authentication
+
+Defines the fundamentals of an 'oidc' authentication.
+
+#### Properties
+
+| Name | Type | Required | Description |
+|:-----|:----:|:--------:|:------------|
+| authority | `uri-template` | `yes` | The URI that references the authority to use when making OpenIdConnect calls. |
+| grant | `string` | `yes` | The grant type to use.<br>Supported values are `authorization_code`, `client_credentials`, `password`, `refresh_token` and `urn:ietf:params:oauth:grant-type:token-exchange`. |
+| client.id | `string` | `no` | The client id to use.<br>Required if the `client.authentication` method has **not** been set to `none`. |
+| client.secret | `string` | `no` | The client secret to use, if any. |
+| client.assertion | `string` | `no` | A JWT containing a signed assertion with your application credentials.<br>Required when `client.authentication` has been set to `private_key_jwt`. |
+| client.authentication | `string` | `no` | The client authentication method to use.<br>Supported values are `client_secret_basic`, `client_secret_post`, `client_secret_jwt`, `private_key_jwt` or `none`.<br>Defaults to `client_secret_post`. |
+| request.encoding | `string` | `no` | The encoding of the token request.<br>Supported values are `application/x-www-form-urlencoded` and `application/json`.<br>Defaults to application/x-www-form-urlencoded. |
+| issuers | `uri-template[]` | `no` | A list that contains that contains valid issuers that will be used to check against the issuer of generated tokens. |
+| scopes | `string[]` | `no` | The scopes, if any, to request the token for. |
+| audiences | `string[]` | `no` | The audiences, if any, to request the token for. |
+| username | `string` | `no` | The username to use. Used only if the grant type is `Password`. |
+| password | `string` | `no` | The password to use. Used only if the grant type is `Password`. |
+| subject | [`oauth2Token`](#oauth2-token) | `no` | The security token that represents the identity of the party on behalf of whom the request is being made. |
+| actor | [`oauth2Token`](#oauth2-token) | `no` | The security token that represents the identity of the acting party. |
+
+### Duration
+
+Defines a duration.
+
+#### Properties
+
+| Property | Type | Required | Description |
+|----------|:----:|:--------:|-------------|
+| Days | `integer` | `no` | Number of days, if any. |
+| Hours | `integer` | `no` | Number of hours, if any. |
+| Minutes | `integer` | `no`| Number of minutes, if any. |
+| Seconds | `integer` | `no`| Number of seconds, if any. |
+| Milliseconds | `integer` | `no`| Number of milliseconds, if any. |
+
+### External Resource
+
+Defines an external resource.
+
+#### Properties
+
+| Property | Type | Required | Description |
+|----------|:----:|:--------:|-------------|
+| name | `string` | `no` | The name, if any, of the defined resource. |
+| endpoint | [`endpoint`](#endpoint) | `yes` | The endpoint at which to get the defined resource. |
 
 ### Endpoint
 

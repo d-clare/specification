@@ -1,56 +1,119 @@
 $id: https://d-clare.ai/schemas/0.1.0/dsl.yaml
 $schema: https://json-schema.org/draft/2020-12/schema
 title: DClare DSL Manifest
-description: Defines the structure of a DClare DSL Manifest document, which specifies a set of AI agents and their configurations within a declarative orchestration workflow
+description: Defines the structure of a DClare Manifest document, which specifies a set of AI agents and their configurations within a declarative orchestration workflow
 type: object
 properties:
+  metadata:
+    title: Manifest Metadata Definition
+    description: Defines descriptive information about a manifest.
+    type: object
+    properties:
+      name:
+        title: Manifest Name
+        description: A unique, human-readable name used to identify the manifest in logs, dashboards, or registries.
+        type: string
+      description:
+        title: Manifest Description
+        description: A brief summary explaining the purpose or scope of the manifest. Useful for documentation or discovery.
+        type: string
+      version:
+        title: Manifest Version
+        description: The version of the manifest, following semantic versioning 2.0.0.
+        type: string
+        pattern: ^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$
+      tags:
+        title: Manifest Tags
+        description: An optional list of keywords or labels used to categorize or filter manifests by theme, domain, or capability.
+        type: array
+        items:
+          type: string
+    required: [ name, version ]
+    unevaluatedProperties: false
   components:
     title: Component Definitions
     description: A collection of reusable components that can be referenced within the DSL. Each component defines a specific capability, behavior, or resource such as AI agents, workflows, or other operational units.
     type: object
     properties:
+      secrets:
+        title: Secrets Registry
+        description: A list containing the name of the secrets used to securely configure components.
+        type: array
+        items:
+          type: string
+        minLength: 1
       authentications:
         title: Authentication Policy Registry
         description: A map of identifiers to authentication policy definitions. Each key represents a unique authentication policy name, and each value specifies the configuration of that authentication policy
         type: object
         additionalProperties:
           $ref: '#/$defs/authentication'
+        minProperties: 1
       memories:
         title: Memory Registry
         description: A map of identifiers to memory definitions. Each key represents a unique memory name, and each value specifies the configuration of that memory
         type: object
         additionalProperties:
           $ref: '#/$defs/memory'
+        minProperties: 1
       toolsets:
         title: Toolset Registry
         description: A map of identifiers to toolset definitions. Each key represents a unique toolset name, and each value specifies the configuration of that toolset
         type: object
         additionalProperties:
           $ref: '#/$defs/toolset'
+        minProperties: 1
       kernelFunctions:
         title: Kernel Function Registry
         description:  A map of identifiers to kernel function definitions. Each key represents a unique agent kernel function, and each value specifies the configuration of that kernel function
         type: object
         additionalProperties:
           $ref: '#/$defs/kernelFunction'
+        minProperties: 1
       kernels:
         title: Kernel Registry
         description: A map of identifiers to kernel definitions. Each key represents a unique kernel name, and each value specifies the configuration of that kernel
         type: object
         additionalProperties:
           $ref: '#/$defs/kernel'
+        minProperties: 1
       agents:
         title: Agent Registry
         description:  A map of identifiers to agent definitions. Each key represents a unique agent name, and each value specifies the configuration of that agent, either as a hosted or remote agent
         type: object
         additionalProperties:
           $ref: '#/$defs/agent'
+        minProperties: 1
       processes:
-        title: Agentic Process Registry
-        description:  A map of identifiers to agentic process definitions. Each key represents a unique agentic process name, and each value specifies the configuration of that agentic process
+        title: Process Registry
+        description:  A map of identifiers to process definitions. Each key represents a unique process name, and each value specifies the configuration of that process
         type: object
         additionalProperties:
-          $ref: '#/$defs/agenticProcess'
+          $ref: '#/$defs/process'
+        minProperties: 1
+    unevaluatedProperties: false
+  interfaces:
+    title: Interface Definitions
+    description: A collection of interfaces through which the application's components are made accessible.
+    type: object
+    properties:
+      agents:
+        title: Agent Interface Definitions
+        description: A map of identifiers to agent interfaces that are exposed by the application. Each key represents a unique agent interface name, and each value specifies the configuration of that agent interface.
+        type: object
+        additionalProperties:
+          $ref: '#/$defs/agentInterface'
+        minProperties: 1
+      processes:
+        title: Process Interface Definitions
+        description: A map of identifiers to process interfaces that are exposed by the application. Each key represents a unique process interface name, and each value specifies the configuration of that process interface.
+        type: object
+        additionalProperties:
+          $ref: '#/$defs/processInterface'
+        minProperties: 1
+    minProperties: 1
+    unevaluatedProperties: false
+required: [ metadata, interfaces ]
 unevaluatedProperties: false
 $defs:
   referenceableAuthentication:
@@ -415,11 +478,11 @@ $defs:
     unevaluatedProperties: false
   toolset:
     title: Toolset Definition
-    description: Defines a toolset that exposes one or more callable tools or functions which agents can invoke at runtime. Toolsets enable structured interactions with external APIs, internal functions, or logic providers
+    description: Defines a toolset that exposes one or more callable tools or functions which kernels can invoke at runtime. Toolsets enable structured interactions with external APIs, internal functions, or logic providers
     type: object
     oneOf:
       - title: MCP Toolset Definition
-        description: Defines a toolset based on the Modular Capability Protocol (MCP), where tools are declared as modules accessible via standard capability interfaces
+        description: Defines a toolset based on the Model Context Protocol (MCP), where tools are declared as modules accessible via standard capability interfaces
         type: object
         properties:
           type:
@@ -429,7 +492,7 @@ $defs:
             constant: mcp
           mcp:
             tile: MCP Toolset Configuration
-            description: Configures a toolset based on the Modular Capability Protocol (MCP), where tools are declared as modules accessible via standard capability interfaces
+            description: Configures a toolset based on the Model Context Protocol (MCP), where tools are declared as modules accessible via standard capability interfaces
             type: object
             properties:
               transport:
@@ -526,7 +589,7 @@ $defs:
         required: [ mcp ]
         unevaluatedProperties: false
       - title: OpenAPI Toolset Definition
-        description: Defines a toolset based on an OpenAPI specification, enabling agents to invoke HTTP-based tools using structured OpenAPI operation definitions
+        description: Defines a toolset based on an OpenAPI specification, enabling kernels to invoke HTTP-based tools using structured OpenAPI operation definitions
         type: object
         properties:
           type:
@@ -587,6 +650,166 @@ $defs:
         description: The endpoint of the external resource
         $ref: '#/$defs/endpoint'
     required: [ endpoint ]
+    unevaluatedProperties: false
+  oauthFlow:
+    title: OAuth Flow Definition
+    description: Defines the configuration of an OAuth Flow.
+    type: object
+    properties:
+      authorizationUrl:
+        title: Authorization Url
+        description: The authorization URL to be used for this flow.
+        type: string
+        format: uri-reference
+      tokenUrl:
+        title: Token Url
+        description: The token URL to be used for this flow.
+        type: string
+        format: uri-reference
+      refreshUrl:
+        title: Refresh Url
+        description: The URL to be used for obtaining refresh tokens.
+        type: string
+        format: uri-reference
+      scopes:
+        title: Scopes
+        description: The available scopes for the OAuth2 security scheme. A map between the scope name and a short description for it.
+        type: array
+        items:
+          type: string
+    required: [ tokenUrl ]
+  oauthFlowCollection:
+    title: OAuth Flow Collection
+    description: Defines the configuration of the supported OAuth Flows.
+    type: object
+    properties:
+      implicit:
+        title: Implicit Flow
+        description: Configuration for the OAuth Implicit flow.
+        $ref: '#/$defs/oauthFlow'
+      password:
+        title: Password Flow
+        description: Configuration for the OAuth Password flow.
+        $ref: '#/$defs/oauthFlow'
+      clientCredentials:
+        title: Client Credentials Flow
+        description: Configuration for the OAuth Client Credentials flow.
+        $ref: '#/$defs/oauthFlow'
+      authorizationCode:
+        title: Authorization Code Flow
+        description: Configuration for the OAuth Authorization Code flow.
+        $ref: '#/$defs/oauthFlow'
+    additionalProperties: false
+  securityScheme:
+    title: Security Scheme Definition
+    description: Defines the authentication method used to secure access to an exposed interface.
+    type: object
+    oneOf:
+      - title: API Key Security Scheme
+        properties:
+          type:
+            title: Security Scheme Type
+            description: The type of the security scheme.
+            type: string
+            enum: [ apiKey ]
+          description:
+            title: Security Scheme Description
+            description: A short description for security scheme. CommonMark syntax MAY be used for rich text representation.
+            type: string
+          name:
+            title: Parameter Name
+            description: The name of the header, query or cookie parameter to be used.
+            type: string
+          in:
+            title: Parameter Location
+            description: The location of the API key.
+            type: string
+            enum: [ query, header, cookie ]
+        required: [ type, name, in ]
+      - title: HTTP Security Scheme
+        properties:
+          type:
+            title: Security Scheme Type
+            description: The type of the security scheme.
+            type: string
+            enum: [ http ]
+          description:
+            title: Security Scheme Description
+            description: A short description for security scheme. CommonMark syntax MAY be used for rich text representation.
+            type: string
+          scheme:
+            title: HTTP Authorization Scheme
+            description: The name of the HTTP Authorization scheme to be used in the Authorization header as defined in RFC7235.
+            type: string
+          bearerFormat:
+            title: Bearer Format
+            description: A hint to the client to identify how the bearer token is formatted. Bearer tokens are usually generated by an authorization server, so this information is primarily for documentation purposes.
+            type: string
+        required: [ type, scheme ]
+      - title:: OAuth2 Security Scheme
+        properties:
+          type:
+            title: Security Scheme Type
+            description: The type of the security scheme.
+            type: string
+            enum: [ oauth2 ]
+          description:
+            title: Security Scheme Description
+            description: A short description for security scheme. CommonMark syntax MAY be used for rich text representation.
+            type: string
+          flows:
+            title: OAuth Flows
+            description: An object containing configuration information for the flow types supported.
+            $ref: '#/$defs/oauthFlowCollection'
+        required: [ type, flows ]
+      - title: OpenID Connect Security Scheme
+        properties:
+          type:
+            title: Security Scheme Type
+            description: The type of the security scheme.
+            type: string
+            enum: [ openIdConnect ]
+          description:
+            title: Security Scheme Description
+            description: A short description for security scheme. CommonMark syntax MAY be used for rich text representation.
+            type: string
+          openIdConnectUrl:
+            title: OpenId Connect Url
+            description: OpenId Connect URL to discover OAuth2 configuration values. This MUST be in the form of a URL.
+            type: string
+            format: uri-reference
+        required: [ type, openIdConnectUrl ]
+    discriminator:
+      propertyName: type
+    unevaluatedProperties: false
+  httpInterface:
+    title: Http Interface Definition
+    description: Defines the HTTP interface through which an application component (e.g., an agent) is exposed.
+    type: object
+    properties:
+      path:
+        title: Http Interface Path
+        description: Specifies the relative URL path at which the component is exposed.
+        type: string
+      authentication:
+        title: Http Interface Security Scheme
+        description: Specifies the authentication scheme, if any, used to protect access to the HTTP endpoint
+        $ref: '#/$defs/securityScheme'
+    required: [ path ]
+    unevaluatedProperties: false
+  interfaceEndpointCollection:
+    title: Interface Endpoint Collection Definition
+    description: Defines the access points through which an application interface is made available.
+    type: object
+    properties:
+      a2a:
+        title: Interface A2A Endpoint
+        description: Indicates whether the interface is publicly documented and accessible via the Agent2Agent protocol
+        type: boolean
+      http:
+        title: Http Interface Definition
+        description: Defines the HTTP interface through which the application component is exposed.
+        $ref: '#/$defs/httpInterface'
     unevaluatedProperties: false
   memoryEntry:
     title: Memory Entry Definition
@@ -792,7 +1015,6 @@ $defs:
             description: An object used to configure a remote agent
             $ref: '#/$defs/remoteAgent'
         required: [remote]
-    unevaluatedProperties: false
   hostedAgent:
     title: Hosted Agent Definition
     description: Represents the definition of an hosted AI agent, which runs within the local environment or platform
@@ -859,6 +1081,19 @@ $defs:
             unevaluatedProperties: false
         unevaluatedProperties: false
     required: [ channel ]
+    unevaluatedProperties: false
+  agentInterface:
+    title: Agent Interface Definition
+    description: Defines an interface to an agent exposed by the application.
+    type: object
+    allOf:
+      - $ref: '#/$defs/agent'
+      - properties:
+          endpoints:
+            title: Agent Interface Endpoints
+            description: Defines the access points through which the agent interface is made available. 
+            $ref: '#/$defs/interfaceEndpointCollection'
+        required: [ endpoints ]
     unevaluatedProperties: false
   kernelFunction:
     title: Kernel Function Definition
@@ -967,13 +1202,13 @@ $defs:
         unevaluatedProperties: false
     required: [ function, kernel ]
     unevaluatedProperties: false
-  agenticProcess:
-    title: Agentic Process Definition
+  process:
+    title: Process Definition
     description: Defines a high-level orchestration process involving one or more agents
     type: object
     oneOf:
       - title: Collaboration Process Definition
-        description: The definition of an agentic process in which multiple agents perform their tasks sequentially with configurable selection and termination strategies
+        description: The definition of a process in which multiple agents perform their tasks sequentially with configurable selection and termination strategies
         type: object
         properties:
           type:
@@ -983,7 +1218,7 @@ $defs:
             const: collaboration
           collaboration:
             title: Collaboration Process Configuration
-            description: The configuration of an agentic process in which multiple agents perform their tasks sequentially with configurable selection and termination strategies
+            description: The configuration of a process in which multiple agents perform their tasks sequentially with configurable selection and termination strategies
             type: object
             properties:
               agents:
@@ -1059,7 +1294,7 @@ $defs:
         required: [ collaboration ]
         unevaluatedProperties: false
       - title: Convergence Process Definition
-        description: The definition of an agentic process in which multiple specialized agents are invoked using tailored sub-prompts, and a designated function synthesizes their responses into a single cohesive result
+        description: The definition of a process in which multiple specialized agents are invoked using tailored sub-prompts, and a designated function synthesizes their responses into a single cohesive result
         type: object
         properties:
           type:
@@ -1069,7 +1304,7 @@ $defs:
             const: convergence
           convergence:
             title: Convergence Process Configuration
-            description: The configuration of an agentic process in which multiple specialized agents are invoked using tailored sub-prompts, and a designated function synthesizes their responses into a single cohesive result
+            description: The configuration of a process in which multiple specialized agents are invoked using tailored sub-prompts, and a designated function synthesizes their responses into a single cohesive result
             type: object
             properties:
               agents:
@@ -1122,4 +1357,17 @@ $defs:
             unevaluatedProperties: false
         required: [ convergence ]
         unevaluatedProperties: false
+    unevaluatedProperties: false
+  processInterface:
+    title: Process Interface Definition
+    description: Defines an interface to a process exposed by the application.
+    type: object
+    allOf:
+      - $ref: '#/$defs/process'
+      - properties:
+          endpoints:
+            title: Process Interface Endpoints
+            description: Defines the access points through which the process interface is made available. 
+            $ref: '#/$defs/interfaceEndpointCollection'
+        required: [ endpoints ]
     unevaluatedProperties: false
