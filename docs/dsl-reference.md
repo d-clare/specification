@@ -16,6 +16,8 @@ Unless otherwise noted, all definitions are designed to be serialized in YAML or
 
 ### Manifest
 
+The manifest defines application metadata, reusable components such as agents, kernels, and secrets, and specifies how these components are exposed through interfaces like A2A or HTTP. It acts as the central entry point for declaring and orchestrating agent behavior.
+
 #### Properties
 
 | Name | Type | Required | Description |
@@ -82,7 +84,7 @@ Defines descriptive information about a manifest.
 |:-----|:----:|:--------:|:------------|
 | name | `string` | `yes` | A unique, human-readable name used to identify the manifest in logs, dashboards, or registries. |
 | description | `string` | `no` | A brief summary explaining the purpose or scope of the manifest. Useful for documentation or discovery. |
-| version | `string` | `yes` |  The version of the manifest, following [semantic versioning 2.0.0](https://semver.org/#semantic-versioning-200https://semver.org/#semantic-versioning-200). Helps manage updates and compatibility. |
+| version | `string` | `yes` | The version of the manifest, following [semantic versioning 2.0.0](https://semver.org/#semantic-versioning-200https://semver.org/#semantic-versioning-200). Helps manage updates and compatibility. |
 | tags | `string[]` | `no` | An optional list of keywords or labels used to categorize or filter manifests by theme, domain, or capability. |
 
 ### Component Collection
