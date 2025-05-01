@@ -45,6 +45,7 @@ The DSL defines the core schema used to describe:
 SDKs are available to help developers work with DClare definitions in various languages:
 
 - [.NET](https://github.com/d-clare/sdk-net)
+- [TypeScript](https://github.com/d-clare/sdk-typescript)
 - [Other SDKs coming soon...]
 
 SDKs can be used to parse, validate, author, and execute specifications programmatically.
